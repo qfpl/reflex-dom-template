@@ -34,8 +34,10 @@ body = mdo
     mkError e = text "Error"
     done = text "Done"
 
+  ePostBuild <- getPostBuild
+
   eClick <- el "div" . fmap snd . runEventWriterT $ do
-    (eError, eSuccess) <- loadTemplate (rule exs) $ static @ "test1.html"
+    (eError, eSuccess) <- loadTemplate (rule exs) $ static @ "test1.html" <$ ePostBuild
     _ <- widgetHold loading . leftmost $ [
               mkError <$> eError
             , eSuccess

@@ -28,8 +28,8 @@ import Text.HTML.Tree
 import Data.Tree
 
 data TemplateError =
-    XHRError XhrException Text
-  | HTMLError Text
+    XHRError XhrException
+  | HTMLError
   deriving (Eq, Ord, Show)
 
 data ReflexToken =
@@ -91,34 +91,31 @@ renderReflexToken rule rt =
 htmlToWidget :: MonadWidget t m
              => Rule m
              -> Text
-             -> Either Text (m ())
+             -> Either TemplateError (m ())
 htmlToWidget rule t =
   case tokensToForest . canonicalizeTokens . parseTokens $ t of
-    Left e -> Left . Text.pack . show $ e
+    Left _ -> Left HTMLError
     Right x -> Right . renderReflexTokens rule . forestToReflex $ x
 
 fetch :: MonadWidget t m
-      => Text
+      => Event t Text
       -> m (Event t TemplateError, Event t Text)
-fetch path = do
-  ePostBuild <- getPostBuild
-  eRes <- performRequestAsyncWithError $ XhrRequest "GET" path def <$ ePostBuild
+fetch ePath = do
+  eRes <- performRequestAsyncWithError $ (\path -> XhrRequest "GET" path def) <$> ePath
   let
     (eFailure, eSuccess) =
       fanEither eRes
     mkSuccess =
       view xhrResponse_responseText
-    mkFailure e =
-      XHRError e path
-  pure (mkFailure <$> eFailure, fmapMaybe mkSuccess eSuccess)
+  pure (XHRError <$> eFailure, fmapMaybe mkSuccess eSuccess)
 
 loadTemplate :: MonadWidget t m
              => Rule m
-             -> Text
+             -> Event t Text
              -> m (Event t TemplateError, Event t (m ()))
-loadTemplate rule path = do
-  (eError1, eText) <- fetch path
+loadTemplate rule ePath = do
+  (eError1, eText) <- fetch ePath
   let
     (eError2, eResult) = fanEither $ htmlToWidget rule <$> eText
-    eError = leftmost [eError1, HTMLError path <$ eError2]
+    eError = leftmost [eError1, eError2]
   pure (eError, eResult)
