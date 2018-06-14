@@ -18,6 +18,7 @@ import Reflex.Dom.Core
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LT
+import qualified Data.Text.Lazy.Builder as LTB
 
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -26,6 +27,7 @@ import Data.Foldable (traverse_)
 import Text.HTML.Parser
 import Text.HTML.Tree
 import Data.Tree
+import HTMLEntities.Decoder (htmlEncodedText)
 
 data TemplateError =
     XHRError XhrException
@@ -86,7 +88,7 @@ renderReflexToken rule rt =
       RTElement l a xs ->
         elAttr l a $ renderReflexTokens rule xs
       RTText t ->
-        text t
+        text . LT.toStrict . LTB.toLazyText . htmlEncodedText $ t
 
 htmlToWidget :: MonadWidget t m
              => Rule m
