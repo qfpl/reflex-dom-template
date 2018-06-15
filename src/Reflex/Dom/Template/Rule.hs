@@ -31,16 +31,17 @@ instance Monoid (Rule m) where
   mempty = Rule $ \_ _ -> Nothing
   mappend = (<>)
 
-elRule :: (Text -> Maybe (m ())) -> Rule m
-elRule fn =
-  elAttrsRule $ \t a -> fn t
+elRule :: Text -> m () -> Rule m
+elRule t w =
+  elAttrsRule t $ const (Just w)
 
-elIdRule :: (Text -> Text -> Maybe (m ())) -> Rule m
-elIdRule fn =
-  elAttrsRule $ \t a -> Map.lookup "id" a >>= fn t
+elIdRule :: Text -> (Text -> Maybe (m ())) -> Rule m
+elIdRule t fn =
+  elAttrsRule t $ \a -> Map.lookup "id" a >>= fn
 
-elAttrsRule :: (Text -> Map Text Text -> Maybe (m ())) -> Rule m
-elAttrsRule fn = Rule $ \rt _ ->
+elAttrsRule :: Text -> (Map Text Text -> Maybe (m ())) -> Rule m
+elAttrsRule t fn = Rule $ \rt _ ->
   case rt of
-    RTElement l a _ -> fn l a
+    RTElement l a _ -> 
+      if l == t then fn a else Nothing
     _ -> Nothing
