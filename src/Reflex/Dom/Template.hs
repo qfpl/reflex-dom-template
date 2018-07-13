@@ -6,7 +6,8 @@ Stability   : experimental
 Portability : non-portable
 -}
 module Reflex.Dom.Template (
-    loadTemplate
+    template
+  , loadTemplate
   , module X
   ) where
 
