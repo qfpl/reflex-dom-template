@@ -23,8 +23,8 @@ library
                      , html-parse >= 0.2.0 && < 0.3
                      , lens >= 4.15.4 && < 4.17
                      , mtl >= 2.2 && < 2.3
-                     , reflex >= 0.5 && < 0.6
-                     , reflex-dom-core >= 0.4 && < 0.5
+                     , reflex >= 0.5 && < 0.7
+                     , reflex-dom-core >= 0.4 && < 0.6
                      , text >= 1.2 && < 1.3
   hs-source-dirs:      src
   ghc-options:         -Wall -O2
